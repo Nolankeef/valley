@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>星露谷｜你是什么类型的农场主</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  :root {
+    --sd-green: #84a968;
+    --sd-light-green: #b1cc9b;
+    --sd-brown: #6b5742;
+    --sd-beige: #f3e9d2;
+    --sd-paper: #fff9e8;
+    --sd-dark: #46392b;
+    --sd-yellow: #f2d479;
+    --sd-blue: #83a8c2;
+    --sd-red: #d47b6b;
+  }
+  html, body {
+    width: 100%;
+    min-height: 100vh;
+    background-color: var(--sd-beige);
+    /* 像素棋盘纹理 */
+    background-image:
+      linear-gradient(45deg, #e9dfc8 25%, transparent 25%),
+      linear-gradient(-45deg, #e9dfc8 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #e9dfc8 75%),
+      linear-gradient(-45deg, transparent 75%, #e9dfc8 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+    color: var(--sd-dark);
+    font-family: "Courier New", monospace;
+    font-size: 15px;
+    line-height: 1.65;
+    image-rendering: pixelated;
+    -webkit-font-smoothing: none;
+  }
+  .app {
+    max-width: 440px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 20px 16px;
+  }
+  /* 像素框核心样式：硬边框，像素偏移阴影 */
+  .pixel-box {
+    background: var(--sd-paper);
+    border: 4px solid var(--sd-brown);
+    box-shadow: 6px 6px 0 0 var(--sd-brown);
+    padding: 16px;
+    margin-bottom: 18px;
+  }
+  .pixel-btn {
+    width: 100%;
+    background: var(--sd-green);
+    color: #fff;
+    border: 4px solid var(--sd-brown);
+    box-shadow: 4px 4px 0 0 var(--sd-brown);
+    padding: 12px;
+    font-family: "Courier New", monospace;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.08s linear;
+  }
+  .pixel-btn:hover {
+    background: #729659;
+  }
+  .pixel-btn:active {
+    transform: translate(3px,3px);
+    box-shadow: 1px 1px 0 0 var(--sd-brown);
+  }
+  .pixel-btn.secondary {
+    background: var(--sd-yellow);
+    color: var(--sd-dark);
+  }
+  .pixel-btn.secondary:hover {
+    background: #e4c461;
+  }
+  .page {
+    display: none;
+  }
+  .page.active {
+    display: block;
+  }
+  .header-tag {
+    background: var(--sd-light-green);
+    border: 3px solid var(--sd-brown);
+    padding: 6px 10px;
+    font-size:13px;
+    font-weight:bold;
+    display:inline-block;
+    margin-bottom:16px;
+  }
+  .cover {
+    text-align:center;
+    padding-top: 8vh;
+  }
+  .pixel-icon-block {
+    width:80px;
+    height:80px;
+    background:var(--sd-light-green);
+    border:4px solid var(--sd-brown);
+    margin:0 auto 16px;
+    display:grid;
+    place-items:center;
+    font-size:36px;
+  }
+  h1.title {
+    font-size:22px;
+    margin-bottom:10px;
+    letter-spacing:1px;
+  }
+  .sub-text {
+    font-size:13px;
+    margin-bottom:18px;
+    color:#5a4b3a;
+  }
+  .progress-wrap {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .progress-bar {
+    flex:1;
+    height:16px;
+    background:#ddd4bf;
+    border:3px solid var(--sd-brown);
+  }
+  .progress-fill {
+    height:100%;
+    background:var(--sd-green);
+    transition:width 0.15s linear;
+  }
+  .progress-text {
+    font-size:13px;
+    font-weight:bold;
+  }
+  .question-title {
+    font-size:15px;
+    font-weight:bold;
+    margin-bottom:16px;
+    min-height:50px;
+  }
+  .options {
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .option {
+    background:var(--sd-paper);
+    border:3px solid var(--sd-brown);
+    padding:12px;
+    text-align:left;
+    cursor:pointer;
+    font-family: inherit;
+    font-size:14px;
+    position:relative;
+    transition:0.08s;
+  }
+  .option:hover {
+    background:#fff3d6;
+  }
+  .option.active {
+    background:var(--sd-yellow);
+  }
+  /* 像素三角选中标记 */
+  .option.active::before {
+    content: "▶";
+    position:absolute;
+    left:-12px;
+    top:50%;
+    transform:translateY(-50%);
+    font-size:14px;
+    color:var(--sd-brown);
+    font-weight:bold;
+  }
+  .result-top {
+    text-align:center;
+    background:var(--sd-light-green);
+    border:4px solid var(--sd-brown);
+    box-shadow:6px 6px 0 var(--sd-brown);
+    padding:20px 16px;
+    margin-bottom:18px;
+  }
+  .result-icon {
+    font-size:40px;
+    margin-bottom:8px;
+  }
+  .result-name {
+    font-size:20px;
+    font-weight:bold;
+  }
+  .tag-row {
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-top:12px;
+  }
+  .mini-tag {
+    background:var(--sd-blue);
+    color:#fff;
+    border:2px solid var(--sd-brown);
+    padding:4px 8px;
+    font-size:12px;
+  }
+  .tip {
+    text-align:center;
+    font-size:12px;
+    margin-top:14px;
+    color:#645441;
+  }
+  .hidden {
+    display:none !important;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header-tag">🌾 鹈鹕镇小测试</div>
+  <!-- 封面页 -->
+  <section class="page cover active" id="coverPage">
+    <div class="pixel-icon-block">🏡</div>
+    <h1 class="title">你是什么类型的农场主？</h1>
+    <p class="sub-text">20道田园小问答，解锁你的种田风格</p>
+    <div class="pixel-box">
+      <p style="font-size:14px;">
+        酿酒大亨｜佛系田园家｜探险矿工<br>
+        社交达人｜钓鱼佬｜收集收藏家
+      </p>
+      <p style="margin-top:8px;font-size:13px;color:#5a4b3a;">
+        来看看你在鹈鹕镇会怎么过日子！
+      </p>
+    </div>
+    <button class="pixel-btn" onclick="startTest()">开始测试</button>
+    <p class="tip">耗时约1分钟｜结果固定</p>
+  </section>
+
+  <!-- 答题页 -->
+  <section class="page" id="questionPage">
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <span class="progress-text" id="progressText">1 / 20</span>
+    </div>
+    <div class="pixel-box">
+      <div class="question-title" id="questionTitle"></div>
+      <div class="options" id="optionsBox"></div>
+    </div>
+    <button class="pixel-btn hidden" id="nextBtn" onclick="nextQuestion()">下一题</button>
+  </section>
+
+  <!-- 结果页 -->
+  <section class="page" id="resultPage">
+    <div class="result-top">
+      <div class="result-icon" id="resultIcon">🏡</div>
+      <div class="result-name" id="resultName">你的农场主人格</div>
+    </div>
+    <div class="pixel-box" id="resultText"></div>
+    <button class="pixel-btn secondary" onclick="restartTest()">重新测试</button>
+    <p class="tip">测完可以截图分享给种田搭子～</p>
+  </section>
+</div>
+
+<script>
+  const questions = [
+    {
+      title: "刚拿到农场，你最先想做什么？",
+      options: ["开荒，规划大片经济作物", "先清理一小块地，随便种点，慢慢来", "收拾背包，直奔矿井", "去镇上逛一圈，认识邻居"]
+    },
+    {
+      title: "下雨天你更倾向？",
+      options: ["在农场里造木桶、加工货品", "在家整理屋子，摸小动物", "泡在矿井，雨天挖矿效率很高", "拿着礼物，上门找NPC聊天"]
+    },
+    {
+      title: "看到一块空地，第一反应？",
+      options: ["计算种什么利润最高", "种好看的花，布置农场风景", "留着以后放矿石、熔矿炉", "要不要在这里办活动、和朋友碰面"]
+    },
+    {
+      title: "晚上一般几点收工？",
+      options: ["卡着时间，把当日农活做完再回家", "天色暗了就回家，不勉强自己", "不到凌晨不出来，沉迷下矿", "逛完所有想找的人再结束一天"]
+    },
+    {
+      title: "收到礼物，你更喜欢？",
+      options: ["值钱的资源、种子", "好看的装饰、鲜花", "矿石、武器、探险道具", "能送给别人的伴手礼"]
+    },
+    {
+      title: "农场布局优先考虑？",
+      options: ["流水线生产，方便收割加工", "好看、舒服，氛围感优先", "留出堆放矿石、熔矿的区域", "靠近小镇，方便串门"]
+    },
+    {
+      title: "遇到节日，你会？",
+      options: ["快速拿完奖励回去干活", "慢慢逛，感受节日氛围", "看完就走，不想耽误挖矿", "和所有人挨个对话，刷好感"]
+    },
+    {
+      title: "背包满了，优先丢掉？",
+      options: ["不值钱、收益低的东西", "重复、不好看的杂物", "普通石头，只留稀有矿", "暂时用不上、没法送人的东西"]
+    },
+    {
+      title: "有一笔存款，你会用来？",
+      options: ["买更多种子、升级工具赚钱", "买家具、装饰农场", "买梯子、炸弹，备战下矿", "买大量礼物"]
+    },
+    {
+      title: "空闲的午后，你选择？",
+      options: ["打理作物，检查收成", "坐在农场发呆，看看风景", "下矿冲层数", "找人闲聊"]
+    },
+    {
+      title: "对你来说金币代表？",
+      options: ["变强、扩大农场的资本", "够用就好，不必强求", "买探险物资的经费", "用来买礼物维系关系"]
+    },
+    {
+      title: "碰到很难刷的物品，你会？",
+      options: ["评估收益，不值得就放弃", "随缘，能出就出", "反复刷，一定要拿到", "问问小镇朋友有没有线索"]
+    },
+    {
+      title: "你怎么看待农场的小动物？",
+      options: ["稳定产出，一笔收入来源", "农场的家人，治愈陪伴", "可有可无，重心不在这", "可以偶尔拿产物送人"]
+    },
+    {
+      title: "一张新地图解锁，你第一反应？",
+      options: ["这里适合种什么，收益如何", "景色好不好看", "里面有没有怪物、宝藏", "这里住着谁，可以认识吗"]
+    },
+    {
+      title: "任务奖励很差，你会？",
+      options: ["看收益，不划算就不做", "想做就做，不在乎奖励", "有稀有物资才会动手", "NPC委托一般不会拒绝"]
+    },
+    {
+      title: "最喜欢哪个季节？",
+      options: ["夏天，高产赚钱季", "春天，万物柔和新生", "冬天，没有农活，安心挖矿", "秋天，小镇活动最多"]
+    },
+    {
+      title: "玩农场最讨厌？",
+      options: ["打乱计划，耽误赚钱", "农场乱糟糟失去美感", "矿井卡关、找不到路", "和NPC好感很难提升"]
+    },
+    {
+      title: "别人的农场吸引你的点？",
+      options: ["高效整齐的生产布局", "充满美感的田园造景", "丰富的矿石藏品", "全镇满好感的社交成果"]
+    },
+    {
+      title: "你更认同？",
+      options: ["努力耕耘，就该获得回报", "生活重在自在随心", "未知冒险永远充满魅力", "人与人的联结最珍贵"]
+    },
+    {
+      title: "如果农场只能保留一件东西：",
+      options: ["木桶", "小花丛", "熔岩晶", "一束可以送人的花"]
+    }
+  ];
+
+  const resultList = [
+    {
+      min: 0,
+      max: 10,
+      name: "酿酒大亨",
+      icon: "🍶",
+      tags: ["规划", "复利", "稳步暴富"],
+      text: [
+        "✨农场底色：务实的酿酒大亨",
+        "你是目标清晰的实干派，心里有一张收益表。偏爱杨桃与上古果，木桶摆满农场，一切耕耘都为丰盈的回报。",
+        "你不喜欢无意义的消磨，愿意为长远收益耐心等待，踏实又清醒。在鹈鹕镇，你最擅长把日子酿成一坛甜而醇的酒。",
+        "🌾种田关键词：规划、复利、稳步暴富"
+      ]
+    },
+    {
+      min: 11,
+      max: 20,
+      name: "佛系田园家",
+      icon: "🌻",
+      tags: ["松弛", "治愈", "享受当下"],
+      text: [
+        "✨农场底色：温柔的佛系田园家",
+        "你来鹈鹕镇不为追赶进度，只为接住四季的浪漫。种花、遛小动物，看日出落在田埂，随季节慢慢生活。",
+        "得失从不是重点，风吹作物沙沙响的瞬间，就是你想要的治愈。你的农场不一定最富，但一定最让人想住下来。",
+        "🌾种田关键词：松弛、治愈、享受当下"
+      ]
+    },
+    {
+      min: 21,
+      max: 30,
+      name: "探险矿工",
+      icon: "⛏️",
+      tags: ["好奇", "勇敢", "奔赴未知"],
+      text: [
+        "✨农场底色：执着的探险矿工",
+        "比起打理农田，矿井深处才是你的乐园。灯光、碎石、偶然掉落的宝石，未知的惊喜永远吸引着你。",
+        "你敢于向下探索，不怕黑暗与怪物，骨子里藏着热爱冒险的热血。对别人来说是危险的矿洞，对你来说更像藏满秘密的游乐场。",
+        "🌾种田关键词：好奇、勇敢、奔赴未知"
+      ]
+    },
+    {
+      min: 31,
+      max: 40,
+      name: "社交达人",
+      icon: "💌",
+      tags: ["共情", "热忱", "偏爱相遇"],
+      text: [
+        "✨农场底色：温暖的小镇社交达人",
+        "鹈鹕镇对你而言，最珍贵的不是作物和金币，是一个个鲜活的人。记着每个人的喜好，按时送上礼物，节日从不缺席。",
+        "你擅长接住别人的情绪，用善意把小镇连成温暖的圈子。有你在，农场不只是农场，更像一场热闹又温柔的相遇。",
+        "🌾种田关键词：共情、热忱、偏爱相遇"
+      ]
+    },
+    {
+      min: 41,
+      max: 50,
+      name: "钓鱼佬",
+      icon: "🐟",
+      tags: ["耐心", "独处", "随遇而安"],
+      text: [
+        "✨农场底色：安静的钓鱼佬",
+        "你总愿意花一下午坐在水边，静静等待浮漂晃动。不在乎收成快慢，独爱这份独处的安宁。",
+        "湖水、晚风、偶然上钩的稀有鱼，漫长的等待本身，就是一种浪漫。你不是在急着生活，你是在和鹈鹕镇的节奏慢慢同频。",
+        "🌾种田关键词：耐心、独处、随遇而安"
+      ]
+    },
+    {
+      min: 51,
+      max: 60,
+      name: "收集收藏家",
+      icon: "📖",
+      tags: ["执着", "细致", "圆满收集"],
+      text: [
+        "✨农场底色：执着的收集收藏家",
+        "你心里藏着一份完美清单。古物、图鉴、作物、食谱，一样都不想落下。",
+        "你愿意反复尝试、耐心补齐碎片，享受一点点填满空白的成就感。对你来说，收集不只是爱好，更是把细碎美好一一认领回家的方式。",
+        "🌾种田关键词：执着、细致、圆满收集"
+      ]
+    }
+  ];
+
+  let currentQ = 0;
+  let totalScore = 0;
+  let selectedIndex = null;
+
+  const coverPage = document.getElementById("coverPage");
+  const questionPage = document.getElementById("questionPage");
+  const resultPage = document.getElementById("resultPage");
+  const questionTitle = document.getElementById("questionTitle");
+  const optionsBox = document.getElementById("optionsBox");
+  const progressFill = document.getElementById("progressFill");
+  const progressText = document.getElementById("progressText");
+  const nextBtn = document.getElementById("nextBtn");
+  const resultName = document.getElementById("resultName");
+  const resultIcon = document.getElementById("resultIcon");
+  const resultText = document.getElementById("resultText");
+
+  function showPage(page) {
+    [coverPage, questionPage, resultPage].forEach(p => p.classList.remove("active"));
+    page.classList.add("active");
+  }
+
+  function startTest() {
+    currentQ = 0;
+    totalScore = 0;
+    selectedIndex = null;
+    showPage(questionPage);
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const q = questions[currentQ];
+    questionTitle.textContent = q.title;
+    optionsBox.innerHTML = "";
+    selectedIndex = null;
+    nextBtn.classList.add("hidden");
+
+    const progress = ((currentQ + 1) / questions.length) * 100;
+    progressFill.style.width = progress + "%";
+    progressText.textContent = `${currentQ + 1} / ${questions.length}`;
+
+    q.options.forEach((text, idx) => {
+      const btn = document.createElement("button");
+      btn.className = "option";
+      btn.textContent = text;
+      btn.onclick = () => selectOption(btn, idx);
+      optionsBox.appendChild(btn);
+    });
+  }
+
+  function selectOption(btn, idx) {
+    document.querySelectorAll(".option").forEach(el => el.classList.remove("active"));
+    btn.classList.add("active");
+    selectedIndex = idx;
+    nextBtn.classList.remove("hidden");
+  }
+
+  function nextQuestion() {
+    if (selectedIndex === null) return;
+    totalScore += selectedIndex;
+    currentQ++;
+
+    if (currentQ >= questions.length) {
+      showResult();
+      return;
+    }
+    renderQuestion();
+  }
+
+  function showResult() {
+    showPage(resultPage);
+    const result = resultList.find(r => totalScore >= r.min && totalScore <= r.max);
+    resultName.textContent = `你的农场主人格：${result.name}`;
+    resultIcon.textContent = result.icon;
+
+    resultText.innerHTML = "";
+    result.text.forEach((line, i) => {
+      const p = document.createElement("p");
+      p.textContent = line;
+      p.style.marginBottom = "8px";
+      if (i === 0) p.style.fontWeight = "bold";
+      resultText.appendChild(p);
+    });
+    const tagRow = document.createElement("div");
+    tagRow.className = "tag-row";
+    result.tags.forEach(tag => {
+      const span = document.createElement("span");
+      span.className = "mini-tag";
+      span.textContent = "#" + tag;
+      tagRow.appendChild(span);
+    });
+    resultText.appendChild(tagRow);
+  }
+
+  function restartTest() {
+    currentQ = 0;
+    totalScore = 0;
+    selectedIndex = null;
+    showPage(coverPage);
+  }
+</script>
+</body>
+</html>
